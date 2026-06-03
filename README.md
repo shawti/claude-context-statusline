@@ -17,6 +17,12 @@ storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(1
 
 百分比颜色：剩余 >25% 绿、≤25% 黄、≤10% 红。
 
+标签语言随系统语言自适应（`LC_ALL`/`LC_MESSAGES`/`LANG` 为 `zh*` 显示中文，其余显示英文）：
+
+```
+demo · Opus 4.8 · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
+```
+
 ## 安装
 
 ```
@@ -25,7 +31,15 @@ storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(1
 /context-statusline:install
 ```
 
-第三步把脚本复制到 `~/.claude/context-statusline.js` 并写入 `~/.claude/settings.json`，下次刷新生效。插件升级后重跑 `/context-statusline:install` 同步脚本。
+第三步把脚本复制到 `~/.claude/context-statusline.js` 并写入 `~/.claude/settings.json`，下次刷新生效。
+
+## 更新
+
+```
+/context-statusline:update
+```
+
+一条命令完成：更新插件到最新版、同步脚本副本。
 
 ## 要求
 

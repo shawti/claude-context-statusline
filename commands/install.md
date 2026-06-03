@@ -31,4 +31,4 @@ cp "<第 1 步的路径>" ~/.claude/context-statusline.js
 echo '{"model":{"id":"claude-opus-4-8","display_name":"Opus"},"workspace":{"current_dir":"/tmp/demo"},"rate_limits":{"five_hour":{"used_percentage":20},"seven_day":{"used_percentage":50}}}' | node ~/.claude/context-statusline.js
 ```
 
-5. 告知用户：状态栏在下次刷新自动生效，无需重启；`5h余` / `周余` 仅 Pro/Max 订阅账号且本会话发出首个请求后才显示；插件升级后重跑本命令同步脚本。
+5. 告知用户：状态栏在下次刷新自动生效，无需重启；`5h余` / `周余` 仅 Pro/Max 订阅账号且本会话发出首个请求后才显示；以后升级用 `/context-statusline:update`。

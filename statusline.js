@@ -89,14 +89,21 @@ const rl = data.rate_limits || {};
 const fiveHourLeft = rateRemainPct(rl.five_hour);
 const weekLeft = rateRemainPct(rl.seven_day);
 
-const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+// 标签语言按 POSIX 优先级 LC_ALL > LC_MESSAGES > LANG 自适应，zh* 中文、其余英文。
+const localeStr =
+  process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || Intl.DateTimeFormat().resolvedOptions().locale || "";
+const isZh = /^zh/i.test(localeStr);
+const T = isZh
+  ? { compact: "距压缩", fiveH: "5h余", week: "周余", nextDay: "明", weekPre: "周", wd: ["日", "一", "二", "三", "四", "五", "六"], wdSep: "" }
+  : { compact: "compact", fiveH: "5h", week: "wk", nextDay: "+1d ", weekPre: "", wd: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], wdSep: " " };
+
 const pad2 = (n) => String(n).padStart(2, "0");
 const resetAt = (epochSec, style) => {
   if (typeof epochSec !== "number") return "";
   const d = new Date(epochSec * 1000);
   const hm = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-  if (style === "week") return `周${WEEKDAY[d.getDay()]}${hm}`;
-  return d.getDate() === new Date().getDate() ? hm : `明${hm}`;
+  if (style === "week") return `${T.weekPre}${T.wd[d.getDay()]}${T.wdSep}${hm}`;
+  return d.getDate() === new Date().getDate() ? hm : `${T.nextDay}${hm}`;
 };
 const rateSeg = (name, leftPctVal, win, style) => {
   const reset = resetAt(win.resets_at, style);
@@ -107,7 +114,7 @@ const parts = [];
 if (dir) parts.push(label(dir));
 parts.push(label(modelName));
 parts.push(`${label("ctx")} ${ctxStr}`);
-parts.push(`${label("距压缩")} ${leftStr}`);
-if (fiveHourLeft !== null) parts.push(rateSeg("5h余", fiveHourLeft, rl.five_hour, "5h"));
-if (weekLeft !== null) parts.push(rateSeg("周余", weekLeft, rl.seven_day, "week"));
+parts.push(`${label(T.compact)} ${leftStr}`);
+if (fiveHourLeft !== null) parts.push(rateSeg(T.fiveH, fiveHourLeft, rl.five_hour, "5h"));
+if (weekLeft !== null) parts.push(rateSeg(T.week, weekLeft, rl.seven_day, "week"));
 process.stdout.write(parts.join(sep(" · ")));
