@@ -1,7 +1,7 @@
 {
   "name": "context-statusline",
   "displayName": "Context StatusLine",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "状态栏显示：项目名 / 模型 / 上下文用量 / 距自动压缩余量 / 5 小时与每周订阅用量剩余",
   "author": {
     "name": "Shawn Tian",

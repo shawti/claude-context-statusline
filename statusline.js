@@ -89,11 +89,25 @@ const rl = data.rate_limits || {};
 const fiveHourLeft = rateRemainPct(rl.five_hour);
 const weekLeft = rateRemainPct(rl.seven_day);
 
+const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+const pad2 = (n) => String(n).padStart(2, "0");
+const resetAt = (epochSec, style) => {
+  if (typeof epochSec !== "number") return "";
+  const d = new Date(epochSec * 1000);
+  const hm = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  if (style === "week") return `周${WEEKDAY[d.getDay()]}${hm}`;
+  return d.getDate() === new Date().getDate() ? hm : `明${hm}`;
+};
+const rateSeg = (name, leftPctVal, win, style) => {
+  const reset = resetAt(win.resets_at, style);
+  return `${label(name)} ${ansi(`${leftPctVal}%`, remainColor(leftPctVal))}${reset ? label(`(${reset})`) : ""}`;
+};
+
 const parts = [];
 if (dir) parts.push(label(dir));
 parts.push(label(modelName));
 parts.push(`${label("ctx")} ${ctxStr}`);
 parts.push(`${label("距压缩")} ${leftStr}`);
-if (fiveHourLeft !== null) parts.push(`${label("5h余")} ${ansi(`${fiveHourLeft}%`, remainColor(fiveHourLeft))}`);
-if (weekLeft !== null) parts.push(`${label("周余")} ${ansi(`${weekLeft}%`, remainColor(weekLeft))}`);
+if (fiveHourLeft !== null) parts.push(rateSeg("5h余", fiveHourLeft, rl.five_hour, "5h"));
+if (weekLeft !== null) parts.push(rateSeg("周余", weekLeft, rl.seven_day, "week"));
 process.stdout.write(parts.join(sep(" · ")));
