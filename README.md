@@ -1,29 +1,31 @@
 # context-statusline
 
-Claude Code 状态栏插件：一行看清 **上下文用量** 和 **订阅用量剩余**。
+[简体中文](./README.zh-CN.md)
 
-```
-storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
-```
-
-| 段 | 含义 |
-|---|---|
-| `storyline-agent` | 当前项目目录名 |
-| `Opus 4.8` | 当前模型 |
-| `ctx 327k/1M (33%)` | 当前上下文 token / 窗口大小（自动识别 1M / 200k 窗口） |
-| `距压缩 66%` | 距触发自动 compact 还剩的窗口比例 |
-| `5h余 77%(19:30)` | 5 小时滚动窗口订阅用量剩余，括号内为重置时间（跨天显示 `明02:30`） |
-| `周余 41%(周五21:30)` | 每周订阅用量剩余，括号内为重置时间 |
-
-百分比颜色：剩余 >25% 绿、≤25% 黄、≤10% 红。
-
-标签语言随系统语言自适应（`LC_ALL`/`LC_MESSAGES`/`LANG` 为 `zh*` 显示中文，其余显示英文）：
+Claude Code statusline plugin: **context usage** and **subscription quota remaining** at a glance.
 
 ```
 demo · Opus 4.8 · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
 ```
 
-## 安装
+| Segment | Meaning |
+|---|---|
+| `demo` | current project directory name |
+| `Opus 4.8` | current model |
+| `ctx 327k/1M (33%)` | context tokens / window size (auto-detects 1M vs 200k windows) |
+| `compact 66%` | window share left before auto-compact triggers |
+| `5h 77%(19:30)` | 5-hour rolling window quota remaining; reset time in parens (`+1d 02:30` when past midnight) |
+| `wk 41%(Fri 21:30)` | weekly quota remaining; reset weekday + time in parens |
+
+Colors: remaining >25% green, ≤25% yellow, ≤10% red.
+
+Labels adapt to the system language (`LC_ALL`/`LC_MESSAGES`/`LANG` starting with `zh` → Chinese, anything else → English):
+
+```
+storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
+```
+
+## Install
 
 ```
 /plugin marketplace add shawti/claude-context-statusline
@@ -31,35 +33,35 @@ demo · Opus 4.8 · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(
 /context-statusline:install
 ```
 
-第三步把脚本复制到 `~/.claude/context-statusline.js` 并写入 `~/.claude/settings.json`，下次刷新生效。
+The third step copies the script to `~/.claude/context-statusline.js` and writes the `statusLine` config into `~/.claude/settings.json`; takes effect on the next refresh.
 
-## 更新
+## Update
 
 ```
 /context-statusline:update
 ```
 
-一条命令完成：更新插件到最新版、同步脚本副本。
+One command: updates the plugin to the latest version and syncs the script copy.
 
-## 要求
-
-- `node` 在 PATH 中
-- Claude Code ≥ 2.1.150（statusline 输入才带 `rate_limits` 字段）
-- `5h余` / `周余` 仅 Claude Pro/Max 订阅账号显示；API key 计费账号无此两段，其余功能不受影响
-
-## 卸载
+## Uninstall
 
 ```
 /context-statusline:uninstall
 ```
 
-一条命令完成：删 `statusLine` 配置、删脚本副本、卸载插件本体。
+One command: removes the `statusLine` config, deletes the script copy, and uninstalls the plugin.
 
-## 实现说明
+## Requirements
 
-- 上下文 token = transcript 中最近一条主线 assistant 消息的 `input + cache_read + cache_creation`，只读 transcript 尾部 1MB，不发任何网络请求
-- `距压缩` 按 Claude Code 自动 compact 阈值（窗口 − 13k 预留）计算
-- `5h余` / `周余` 直接取 statusline stdin 的 `rate_limits.five_hour / seven_day.used_percentage`，无外部 API 调用
+- `node` on PATH
+- Claude Code ≥ 2.1.150 (statusline input carries `rate_limits` since then)
+- `5h` / `wk` segments only appear for Claude Pro/Max subscription accounts; API-key billing accounts simply won't see them — everything else still works
+
+## Implementation notes
+
+- Context tokens = `input + cache_read + cache_creation` of the latest main-chain assistant message in the transcript; reads only the last 1MB of the file, no network requests
+- `compact` is computed against Claude Code's auto-compact threshold (window − 13k reserve)
+- `5h` / `wk` come straight from `rate_limits.five_hour / seven_day` in the statusline stdin — no external API calls
 
 ## License
 
