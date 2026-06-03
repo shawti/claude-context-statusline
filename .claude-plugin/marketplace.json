@@ -1,0 +1,15 @@
+{
+  "name": "shawti-plugins",
+  "description": "Shawn 的 Claude Code 插件集",
+  "owner": {
+    "name": "Shawn Tian",
+    "url": "https://github.com/shawti"
+  },
+  "plugins": [
+    {
+      "name": "context-statusline",
+      "source": "./",
+      "description": "状态栏显示：项目名 / 模型 / 上下文用量 / 距自动压缩余量 / 5 小时与每周订阅用量剩余"
+    }
+  ]
+}
