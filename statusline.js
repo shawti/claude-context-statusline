@@ -68,11 +68,15 @@ const dir = cwd ? cwd.split("/").filter(Boolean).pop() : "";
 // Claude Code 触发自动压缩的阈值 = 有效窗口 - 13000 (见 CLI 内 rN_: H-13000)。
 const COMPACT_RESERVE = 13_000;
 
+// 对照 Claude Code 2.1.198 内置模型注册表：fable-5/mythos-5/opus-4-7/opus-4-8/sonnet-5 原生 1M；
+// opus-4-6/sonnet-4-6/sonnet-4-5 基础 200k、带 [1m] 后缀才是 1M；haiku 与更早模型 200k。
+const NATIVE_1M_MODELS = /claude-(fable-5|mythos-5|opus-4-7|opus-4-8|sonnet-5)/i;
+
 const cw = data.context_window || {};
 const windowTokens =
   typeof cw.context_window_size === "number" && cw.context_window_size > 0
     ? cw.context_window_size
-    : /\[1m\]/i.test(modelId)
+    : /\[1m\]/i.test(modelId) || NATIVE_1M_MODELS.test(modelId)
       ? 1_000_000
       : 200_000;
 const windowLabel = windowTokens >= 1_000_000 ? `${windowTokens / 1_000_000}M` : `${windowTokens / 1000}k`;
