@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Claude Code statusLine: 显示当前上下文用量 + 距自动压缩余量 + 5h/每周订阅用量剩余。
-// 输入: stdin JSON (model / workspace / transcript_path / exceeds_200k_tokens ...)
-// 上下文 token = 最近一条主线 assistant 消息的 input + cache_read + cache_creation。
+// 输入: stdin JSON (model / workspace / transcript_path / context_window ...)
+// 上下文 token / 窗口大小优先取 stdin 的 context_window（CLI >= 2.1.x 提供，1M 会话也准确），
+// 缺失时回退：解析 transcript 最近一条主线 assistant 消息 usage + 按 model id 猜窗口。
 
 const fs = require("fs");
 
@@ -67,10 +68,17 @@ const dir = cwd ? cwd.split("/").filter(Boolean).pop() : "";
 // Claude Code 触发自动压缩的阈值 = 有效窗口 - 13000 (见 CLI 内 rN_: H-13000)。
 const COMPACT_RESERVE = 13_000;
 
-const windowTokens = /\[?1m\]?/i.test(modelId) ? 1_000_000 : 200_000;
+const cw = data.context_window || {};
+const windowTokens =
+  typeof cw.context_window_size === "number" && cw.context_window_size > 0
+    ? cw.context_window_size
+    : /\[1m\]/i.test(modelId)
+      ? 1_000_000
+      : 200_000;
 const windowLabel = windowTokens >= 1_000_000 ? `${windowTokens / 1_000_000}M` : `${windowTokens / 1000}k`;
 
-const ctx = latestContextTokens(data.transcript_path);
+const ctx =
+  typeof cw.total_input_tokens === "number" ? cw.total_input_tokens : latestContextTokens(data.transcript_path);
 const pct = Math.round((ctx / windowTokens) * 100);
 
 const color = pct >= 80 ? 31 : pct >= 50 ? 33 : 32; // red / yellow / green
