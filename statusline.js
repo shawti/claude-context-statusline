@@ -62,6 +62,8 @@ const latestContextTokens = (transcriptPath) => {
 const data = readStdin();
 const modelId = (data.model && data.model.id) || "";
 const modelName = (data.model && data.model.display_name) || modelId || "Claude";
+// effort 仅在模型支持时由 CLI 下发（stdin effort.level），缺失时整项不显示。
+const effortLevel = (data.effort && typeof data.effort.level === "string" && data.effort.level) || "";
 const cwd = (data.workspace && data.workspace.current_dir) || data.cwd || "";
 const dir = cwd ? cwd.split("/").filter(Boolean).pop() : "";
 
@@ -125,6 +127,7 @@ const rateSeg = (name, leftPctVal, win, style) => {
 const parts = [];
 if (dir) parts.push(label(dir));
 parts.push(label(modelName));
+if (effortLevel) parts.push(`${label("effort")} ${ansi(effortLevel, 36)}`);
 parts.push(`${label("ctx")} ${ctxStr}`);
 parts.push(`${label(T.compact)} ${leftStr}`);
 if (fiveHourLeft !== null) parts.push(rateSeg(T.fiveH, fiveHourLeft, rl.five_hour, "5h"));

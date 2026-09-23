@@ -5,13 +5,14 @@
 Claude Code statusline plugin: **context usage** and **subscription quota remaining** at a glance.
 
 ```
-demo · Opus 4.8 · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
+demo · Opus 4.8 · effort high · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
 ```
 
 | Segment | Meaning |
 |---|---|
 | `demo` | current project directory name |
 | `Opus 4.8` | current model |
+| `effort high` | current reasoning effort level (only shown for models that support effort) |
 | `ctx 327k/1M (33%)` | context tokens / window size (auto-detects 1M vs 200k windows) |
 | `compact 66%` | window share left before auto-compact triggers |
 | `5h 77%(19:30)` | 5-hour rolling window quota remaining; reset time in parens (`+1d 02:30` when past midnight) |
@@ -22,7 +23,7 @@ Colors: remaining >25% green, ≤25% yellow, ≤10% red.
 Labels adapt to the system language (`LC_ALL`/`LC_MESSAGES`/`LANG` starting with `zh` → Chinese, anything else → English):
 
 ```
-storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
+storyline-agent · Opus 4.8 · effort high · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
 ```
 
 ## Install

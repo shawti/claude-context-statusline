@@ -5,13 +5,14 @@
 Claude Code 状态栏插件：一行看清 **上下文用量** 和 **订阅用量剩余**。
 
 ```
-storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
+storyline-agent · Opus 4.8 · effort high · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(19:30) · 周余 41%(周五21:30)
 ```
 
 | 段 | 含义 |
 |---|---|
 | `storyline-agent` | 当前项目目录名 |
 | `Opus 4.8` | 当前模型 |
+| `effort high` | 当前推理 effort 档位（仅支持 effort 的模型显示） |
 | `ctx 327k/1M (33%)` | 当前上下文 token / 窗口大小（自动识别 1M / 200k 窗口） |
 | `距压缩 66%` | 距触发自动 compact 还剩的窗口比例 |
 | `5h余 77%(19:30)` | 5 小时滚动窗口订阅用量剩余，括号内为重置时间（跨天显示 `明02:30`） |
@@ -22,7 +23,7 @@ storyline-agent · Opus 4.8 · ctx 327k/1M (33%) · 距压缩 66% · 5h余 77%(1
 标签语言随系统语言自适应（`LC_ALL`/`LC_MESSAGES`/`LANG` 为 `zh*` 显示中文，其余显示英文）：
 
 ```
-demo · Opus 4.8 · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
+demo · Opus 4.8 · effort high · ctx 327k/1M (33%) · compact 66% · 5h 77%(19:30) · wk 41%(Fri 21:30)
 ```
 
 ## 安装
