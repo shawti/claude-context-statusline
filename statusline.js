@@ -67,8 +67,12 @@ const effortLevel = (data.effort && typeof data.effort.level === "string" && dat
 const cwd = (data.workspace && data.workspace.current_dir) || data.cwd || "";
 const dir = cwd ? cwd.split("/").filter(Boolean).pop() : "";
 
-// Claude Code 触发自动压缩的阈值 = 有效窗口 - 13000 (见 CLI 内 rN_: H-13000)。
-const COMPACT_RESERVE = 13_000;
+// 对照 Claude Code 2.1.280：阈值 = 压缩窗口 − min(最大输出, 20000)(摘要输出预留) − 13000。
+// 压缩窗口默认等于模型窗口，可被 CLAUDE_CODE_AUTO_COMPACT_WINDOW / settings.autoCompactWindow(/autocompact) 调低。
+const SUMMARY_OUTPUT_RESERVE = 20_000;
+const COMPACT_BUFFER = 13_000;
+const MIN_COMPACT_WINDOW = 100_000;
+const MAX_COMPACT_WINDOW = 1_000_000;
 
 // 对照 Claude Code 2.1.198 内置模型注册表：fable-5/mythos-5/opus-4-7/opus-4-8/sonnet-5 原生 1M；
 // opus-4-6/sonnet-4-6/sonnet-4-5 基础 200k、带 [1m] 后缀才是 1M；haiku 与更早模型 200k。
@@ -92,9 +96,64 @@ const ctxStr = ansi(`${kfmt(ctx)}/${windowLabel} (${pct}%)`, color);
 
 const remainColor = (p) => (p <= 10 ? 31 : p <= 25 ? 33 : 32); // 越少越红
 
-const threshold = Math.max(0, windowTokens - COMPACT_RESERVE);
-const leftPct = Math.max(0, Math.round(((threshold - ctx) / windowTokens) * 100));
-const leftStr = ansi(`${leftPct}%`, remainColor(leftPct));
+const readJson = (p) => {
+  try {
+    return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+const positiveNumber = (v) => {
+  const n = Number(v);
+  return v !== null && v !== "" && Number.isFinite(n) && n > 0 ? n : undefined;
+};
+
+// 与 CLI 同优先级合并 settings：user < project < local，后者覆盖前者。
+const settingsFiles = (projectDir) => {
+  const home = process.env.HOME || "";
+  const files = [`${home}/.claude/settings.json`];
+  if (projectDir) files.push(`${projectDir}/.claude/settings.json`, `${projectDir}/.claude/settings.local.json`);
+  return files;
+};
+
+const mergedSetting = (key, projectDir) =>
+  settingsFiles(projectDir).reduce((acc, f) => {
+    const v = (readJson(f) || {})[key];
+    return v === undefined || v === null ? acc : v;
+  }, undefined);
+
+const isAutoCompactDisabled = (projectDir) => {
+  if (process.env.DISABLE_AUTO_COMPACT || process.env.DISABLE_COMPACT) return true;
+  const fromSettings = mergedSetting("autoCompactEnabled", projectDir);
+  if (fromSettings !== undefined) return fromSettings === false;
+  return (readJson(`${process.env.HOME || ""}/.claude.json`) || {}).autoCompactEnabled === false;
+};
+
+const resolveCompactWindow = (modelWindow, projectDir) => {
+  const configured =
+    positiveNumber(process.env.CLAUDE_CODE_AUTO_COMPACT_WINDOW) ?? positiveNumber(mergedSetting("autoCompactWindow", projectDir));
+  if (configured === undefined) return modelWindow;
+  const clamped = Math.min(MAX_COMPACT_WINDOW, Math.max(MIN_COMPACT_WINDOW, configured));
+  return Math.min(modelWindow, clamped);
+};
+
+const compactThreshold = (compactWindow) => {
+  const maxOutput = positiveNumber(process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS) ?? SUMMARY_OUTPUT_RESERVE;
+  const effective = compactWindow - Math.min(maxOutput, SUMMARY_OUTPUT_RESERVE);
+  const base = effective - COMPACT_BUFFER;
+  const pct = positiveNumber(process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE);
+  return pct !== undefined && pct <= 100 ? Math.min(Math.floor(effective * (pct / 100)), base) : base;
+};
+
+const projectDir = (data.workspace && data.workspace.project_dir) || cwd;
+const leftStr = (() => {
+  if (isAutoCompactDisabled(projectDir)) return label("off");
+  const threshold = Math.max(1, compactThreshold(resolveCompactWindow(windowTokens, projectDir)));
+  // 与 CLI 自带「% until auto-compact」同分母（阈值而非模型窗口）。
+  const leftPct = Math.max(0, Math.round(((threshold - ctx) / threshold) * 100));
+  return ansi(`${leftPct}%`, remainColor(leftPct));
+})();
 
 // rate_limits 仅订阅账号且首个 API 响应后才有，缺失时整项不显示。
 const rateRemainPct = (w) =>

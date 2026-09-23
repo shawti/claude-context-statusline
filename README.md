@@ -14,7 +14,7 @@ demo · Opus 4.8 · effort high · ctx 327k/1M (33%) · compact 66% · 5h 77%(19
 | `Opus 4.8` | current model |
 | `effort high` | current reasoning effort level (only shown for models that support effort) |
 | `ctx 327k/1M (33%)` | context tokens / window size (auto-detects 1M vs 200k windows) |
-| `compact 66%` | window share left before auto-compact triggers |
+| `compact 66%` | share left before auto-compact triggers, relative to the compact threshold (`off` when auto-compact is disabled) |
 | `5h 77%(19:30)` | 5-hour rolling window quota remaining; reset time in parens (`+1d 02:30` when past midnight) |
 | `wk 41%(Fri 21:30)` | weekly quota remaining; reset weekday + time in parens |
 
@@ -61,7 +61,8 @@ One command: removes the `statusLine` config, deletes the script copy, and unins
 ## Implementation notes
 
 - Context tokens = `input + cache_read + cache_creation` of the latest main-chain assistant message in the transcript; reads only the last 1MB of the file, no network requests
-- `compact` is computed against Claude Code's auto-compact threshold (window − 13k reserve)
+- `compact` mirrors Claude Code's auto-compact threshold: compact window − min(max output, 20k) − 13k. The compact window defaults to the model window and honors `CLAUDE_CODE_AUTO_COMPACT_WINDOW` / `autoCompactWindow` (`/autocompact`); `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is also respected
+- When the CLI defers to reactive compaction (only compacts on the API's prompt-too-long error), `compact` may read 0% before compaction happens; this state is not exposed to statusline stdin
 - `5h` / `wk` come straight from `rate_limits.five_hour / seven_day` in the statusline stdin — no external API calls
 
 ## License

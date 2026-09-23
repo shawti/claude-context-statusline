@@ -14,7 +14,7 @@ storyline-agent · Opus 4.8 · effort high · ctx 327k/1M (33%) · 距压缩 66%
 | `Opus 4.8` | 当前模型 |
 | `effort high` | 当前推理 effort 档位（仅支持 effort 的模型显示） |
 | `ctx 327k/1M (33%)` | 当前上下文 token / 窗口大小（自动识别 1M / 200k 窗口） |
-| `距压缩 66%` | 距触发自动 compact 还剩的窗口比例 |
+| `距压缩 66%` | 距触发自动 compact 还剩的比例（以压缩阈值为分母；自动压缩关闭时显示 `off`） |
 | `5h余 77%(19:30)` | 5 小时滚动窗口订阅用量剩余，括号内为重置时间（跨天显示 `明02:30`） |
 | `周余 41%(周五21:30)` | 每周订阅用量剩余，括号内为重置时间 |
 
@@ -61,7 +61,8 @@ demo · Opus 4.8 · effort high · ctx 327k/1M (33%) · compact 66% · 5h 77%(19
 ## 实现说明
 
 - 上下文 token = transcript 中最近一条主线 assistant 消息的 `input + cache_read + cache_creation`，只读 transcript 尾部 1MB，不发任何网络请求
-- `距压缩` 按 Claude Code 自动 compact 阈值（窗口 − 13k 预留）计算
+- `距压缩` 与 Claude Code 自动 compact 阈值同口径：压缩窗口 − min(最大输出, 20k) − 13k；压缩窗口默认等于模型窗口，遵从 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` / `autoCompactWindow`（`/autocompact`），并支持 `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`
+- CLI 处于被动压缩模式（只在 API 返回上下文超长时才压缩）时，可能显示 0% 仍未压缩；该状态不在 statusline stdin 中，插件无法感知
 - `5h余` / `周余` 直接取 statusline stdin 的 `rate_limits.five_hour / seven_day`，无外部 API 调用
 
 ## License
